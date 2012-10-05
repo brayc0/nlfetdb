@@ -62,18 +62,12 @@ public class managerUI extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
+                .add(111, 111, 111)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(layout.createSequentialGroup()
-                        .add(111, 111, 111)
-                        .add(btnSave))
-                    .add(layout.createSequentialGroup()
-                        .add(136, 136, 136)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(btnTestPrint)
-                            .add(layout.createSequentialGroup()
-                                .add(14, 14, 14)
-                                .add(btnExit)))))
-                .addContainerGap(128, Short.MAX_VALUE))
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, btnTestPrint, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
+                    .add(btnExit, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, btnSave, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .add(128, 128, 128))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)

@@ -1,0 +1,4 @@
+jdbc:mysql://213.171.200.65/
+cbraydb
+brayc0
+flarb393hopkins

@@ -94,12 +94,16 @@ public class connectUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnConnectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConnectActionPerformed
-        databaseConn.connect(txtURL.getText(), txtName.getText(), txtUser.getText(), txtPass.getText());
-        managerUI mui = new managerUI();
-        mui.setLocationRelativeTo(null);
-        mui.setSize(400,300);
-        this.setVisible(false);
-        mui.setVisible(true);
+        boolean connected = databaseConn.connect(txtURL.getText(), txtName.getText(), txtUser.getText(), txtPass.getText());
+        if (connected)
+        {
+          managerUI mui = new managerUI();
+          mui.setLocationRelativeTo(null);
+          mui.setSize(400,300);
+          this.setVisible(false);
+          mui.setVisible(true);
+        }
+
     }//GEN-LAST:event_btnConnectActionPerformed
 
     private void btnLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoadActionPerformed
