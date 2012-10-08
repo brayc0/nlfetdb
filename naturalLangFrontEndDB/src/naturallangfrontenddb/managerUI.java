@@ -30,16 +30,47 @@ public class managerUI extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        btnSave = new javax.swing.JButton();
-        btnTestPrint = new javax.swing.JButton();
+        jTabbedPane2 = new javax.swing.JTabbedPane();
+        tabPane = new javax.swing.JTabbedPane();
+        qryPnl = new javax.swing.JPanel();
+        txtQuery = new javax.swing.JTextField();
+        btnQuery = new javax.swing.JButton();
+        optionsPnl = new javax.swing.JPanel();
         btnExit = new javax.swing.JButton();
+        saveTab = new javax.swing.JButton();
+        btnTestPrint = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
 
-        btnSave.setText("Save DB Login Info");
-        btnSave.addActionListener(new java.awt.event.ActionListener() {
+        qryPnl.setLayout(null);
+
+        txtQuery.setText("Enter query Here");
+        qryPnl.add(txtQuery);
+        txtQuery.setBounds(10, 20, 347, 27);
+
+        btnQuery.setText("Query");
+        btnQuery.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSaveActionPerformed(evt);
+                btnQueryActionPerformed(evt);
+            }
+        });
+        qryPnl.add(btnQuery);
+        btnQuery.setBounds(10, 60, 128, 29);
+
+        tabPane.addTab("Query", qryPnl);
+
+        btnExit.setText("Exit");
+        btnExit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnExitActionPerformed(evt);
+            }
+        });
+
+        saveTab.setText("Save DB Login Info");
+        saveTab.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveTabActionPerformed(evt);
             }
         });
 
@@ -50,36 +81,34 @@ public class managerUI extends javax.swing.JFrame {
             }
         });
 
-        btnExit.setText("Exit");
-        btnExit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnExitActionPerformed(evt);
-            }
-        });
-
-        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(111, 111, 111)
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, btnTestPrint, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
-                    .add(btnExit, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 132, Short.MAX_VALUE)
-                    .add(org.jdesktop.layout.GroupLayout.TRAILING, btnSave, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .add(128, 128, 128))
+        org.jdesktop.layout.GroupLayout optionsPnlLayout = new org.jdesktop.layout.GroupLayout(optionsPnl);
+        optionsPnl.setLayout(optionsPnlLayout);
+        optionsPnlLayout.setHorizontalGroup(
+            optionsPnlLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(optionsPnlLayout.createSequentialGroup()
+                .add(114, 114, 114)
+                .add(optionsPnlLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING, false)
+                    .add(saveTab, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(btnTestPrint, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(btnExit, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(122, Short.MAX_VALUE))
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .add(80, 80, 80)
-                .add(btnSave)
+        optionsPnlLayout.setVerticalGroup(
+            optionsPnlLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(optionsPnlLayout.createSequentialGroup()
+                .add(32, 32, 32)
+                .add(saveTab)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(btnTestPrint)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(btnExit)
-                .addContainerGap(121, Short.MAX_VALUE))
+                .addContainerGap(66, Short.MAX_VALUE))
         );
+
+        tabPane.addTab("Options", optionsPnl);
+
+        getContentPane().add(tabPane);
+        tabPane.setBounds(0, 0, 380, 240);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -87,31 +116,32 @@ public class managerUI extends javax.swing.JFrame {
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
         databaseConn.closeConn();
         System.exit(0);
-    }//GEN-LAST:event_btnExitActionPerformed
+}//GEN-LAST:event_btnExitActionPerformed
 
     private void btnTestPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTestPrintActionPerformed
         databaseConn.testPrint();
-    }//GEN-LAST:event_btnTestPrintActionPerformed
+}//GEN-LAST:event_btnTestPrintActionPerformed
 
-    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        try
-        {    
-          JFileChooser chooser = new JFileChooser();
-          chooser.showSaveDialog(null);
-          FileWriter saveFile = new FileWriter(chooser.getSelectedFile() + ".txt");
-          BufferedWriter out = new BufferedWriter(saveFile);
-          out.write(databaseConn.url + "\n");
-          out.write(databaseConn.dbName + "\n");
-          out.write(databaseConn.userName + "\n");
-          out.write(databaseConn.password + "\n");
-          out.close();
-        }
-        catch(Exception e)
-        {
+    private void btnQueryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnQueryActionPerformed
+        String query = txtQuery.getText();
+        databaseConn.genericQueryDB(query);
+}//GEN-LAST:event_btnQueryActionPerformed
+
+    private void saveTabActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveTabActionPerformed
+        try {
+            JFileChooser chooser = new JFileChooser();
+            chooser.showSaveDialog(null);
+            FileWriter saveFile = new FileWriter(chooser.getSelectedFile() + ".txt");
+            BufferedWriter out = new BufferedWriter(saveFile);
+            out.write(databaseConn.url + "\n");
+            out.write(databaseConn.dbName + "\n");
+            out.write(databaseConn.userName + "\n");
+            out.write(databaseConn.password + "\n");
+            out.close();
+        } catch(Exception e) {
             System.err.println(e);
         }
-        
-    }//GEN-LAST:event_btnSaveActionPerformed
+    }//GEN-LAST:event_saveTabActionPerformed
 
     /**
      * @param args the command line arguments
@@ -156,7 +186,13 @@ public class managerUI extends javax.swing.JFrame {
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnExit;
-    private javax.swing.JButton btnSave;
+    private javax.swing.JButton btnQuery;
     private javax.swing.JButton btnTestPrint;
+    private javax.swing.JTabbedPane jTabbedPane2;
+    private javax.swing.JPanel optionsPnl;
+    private javax.swing.JPanel qryPnl;
+    private javax.swing.JButton saveTab;
+    private javax.swing.JTabbedPane tabPane;
+    private javax.swing.JTextField txtQuery;
     // End of variables declaration//GEN-END:variables
 }

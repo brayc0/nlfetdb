@@ -4,6 +4,7 @@
  */
 package naturallangfrontenddb;
 
+import com.mysql.jdbc.DatabaseMetaData;
 import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,7 +19,10 @@ public class databaseConn {
     static String dbName;
     static String userName;
     static String password;
-    
+
+  /*
+   * Creates the connection to the database
+   */
   public static boolean connect(String Url, String DbName, String UserName, String Password)
   {
     url = Url;
@@ -43,7 +47,10 @@ public class databaseConn {
       return false;
     }
   }//connect
-  
+
+  /*
+   * Closes the connection to the database
+   */
   public static void closeConn()
   {
     try
@@ -56,100 +63,109 @@ public class databaseConn {
       System.err.println("Could not close the connection " + e);   
     }    
   }//closeConn
-  
+
+  public static void genericQueryDB(String q)
+  {
+    try
+    {
+        Statement query = conn.createStatement();
+        ResultSet rs = query.executeQuery(q);
+
+        java.sql.ResultSetMetaData meta = rs.getMetaData();
+        int colCount = meta.getColumnCount();
+        String [] colNames = new String [colCount];
+        //print the table name
+        System.out.println(meta.getTableName(1));
+
+        //Print out the names of the different fields.
+        for(int i = 1; i<=colCount; i++)
+        {
+          colNames[i-1] = meta.getColumnName(i);
+          System.out.print(colNames[i-1] +  "\t");
+        }
+        System.out.println();
+
+        //while there is a next row to read
+        while(rs.next())
+        {
+          //make an array for the data
+          Object [] data = new Object [colCount];
+          java.sql.ResultSetMetaData mdata = rs.getMetaData();
+          //for each column
+          for(int i = 0; i<data.length; i++)
+          {
+              //get the type of the column, so youknow what type of data to get
+              int type = mdata.getColumnType(i+1);
+              switch (type)
+              {
+                  case 4: data[i] = rs.getInt(colNames[i]);
+                  break;
+                  case 12: data[i] = rs.getString(colNames[i]);
+                  break;
+                  case -2: data[i] = new binaryString(rs.getBytes(colNames[i]));
+                  break;
+                  default: System.out.println(type);
+                  break;
+              }//switch
+          }//for
+          //for loop to print out the data
+          for(int i = 0; i<data.length; i++)
+          {
+              //if the type of data stored in the object array is actually a 
+              //binary string
+              if(data[i].getClass().equals(binaryString.class))
+              {
+                  //cast the object to a binaryString
+                  binaryString bs = (binaryString)data[i];
+                  //go through each of the byytes and print out a 0 if it is 
+                  //equal to 48 and a 1 if it is equal to 49
+                  for(int j = 0; j<bs.bytes.length; j++)
+                  {
+                      int week = 0;
+                      if(bs.bytes[j] == 49)
+                          week = 1;
+                      System.out.print(week);
+                  }//for
+                  System.out.print("\t");
+              }//if
+              //otherwise print out the object
+              else
+              {
+                System.out.print(data[i] + "\t");
+              }//else
+          }
+          System.out.println();
+        }
+
+    }
+    catch(Exception e)
+    {
+        System.err.println(e);
+    }
+  }
+
+  /*
+   * A function which prints out the contents of the database.
+   */
   public static void testPrint()
   {
     try
     {
       Statement print = conn.createStatement();
-      ResultSet rs = print.executeQuery("SELECT * FROM tblStudents");
-      System.out.println("tblStudents");
-      System.out.println("ID\tForename\tSurname");
-      while(rs.next())
-      {
-          int id = rs.getInt("ID");
-          String forename = rs.getString("Forename");
-          String surname = rs.getString("Surname");
-          System.out.println(id + "\t" + forename + "\t" + surname);
-      }      
-      System.out.println();
-      
-      rs = print.executeQuery("SELECT * FROM tblModule");
-      System.out.println("tblModule");
-      System.out.println("ID\tModuleCode\tAT1\tAT2\tAT3\tAT4\tPrintName");
-      while(rs.next())
-      {
-          String id = rs.getString("ID");
-          String code = rs.getString("ModuleCode");
-          int at1 = rs.getInt("ActivityTemplate");
-          int at2 = rs.getInt("ActivityTemplate2");
-          int at3 = rs.getInt("ActivityTemplate3");
-          int at4 = rs.getInt("ActivityTemplate4");
-          String name = rs.getString("PrintName");
-          System.out.println(id + "\t" + code + "\t" + at1 + "\t" + at2 + "\t"
-                             + at3 + "\t" + at4 + "\t" + name);
-      }
-      System.out.println();
-      
-      rs = print.executeQuery("SELECT * FROM tblActivity");
-      System.out.println("tblActivity");
-      System.out.println("ID\tPrintName\tSemester\tWeekPattern\tDay\tStart\t"
-                         + "Duration\tLocation");
-      while(rs.next())
-      {
-          int id = rs.getInt("ID");
-          String name = rs.getString("PrintName");
-          int sem = rs.getInt("Semester");
-          String week = rs.getString("WeekPattern");
-          int day = rs.getInt("Day");
-          int start = rs.getInt("Start");
-          int duration = rs.getInt("Duration");
-          int loc = rs.getInt("Location");
-          System.out.println(id + "\t" + name + "\t" + sem + "\t" + week +
-                             "\t"+ day + "\t" + start + "\t" + duration + "\t"
-                             + loc);
-      }
-      System.out.println();
-      
-      rs = print.executeQuery("SELECT * FROM tblAllocation");
-      System.out.println("tblEnrollment");
-      System.out.println("ID\tStudent\tActivity");
-      while(rs.next())
-      {
-          int id = rs.getInt("ID");
-          int student = rs.getInt("Student");
-          String activity = rs.getString("Activity");
-          System.out.println(id + "\t" + student + "\t" + activity);
-      }
-      System.out.println();
+      //get the metedata of the database
+      DatabaseMetaData dbmeta = (DatabaseMetaData) conn.getMetaData();
+      String [] types = {"TABLE"};
+      ResultSet dbtables = dbmeta.getTables(null, null, "%", types);
 
-      rs = print.executeQuery("SELECT * FROM tblActivityTemplate");
-      System.out.println("tblActivityTemplate");
-      System.out.println("ID\tPrintName\tA1\tA2\tA3\tA4");
-      while(rs.next())
+      //for each table
+      while(dbtables.next())
       {
-          int id = rs.getInt("ID");
-          String name = rs.getString("PrintName");
-          int activity = rs.getInt("Activity1");
-          int activity2 = rs.getInt("Activity2");
-          int activity3 = rs.getInt("Activity3");
-          int activity4 = rs.getInt("Activity4");
-          System.out.println(id + "\t" + name + "\t" + activity + "\t" +
-                             activity2 + "\t" + activity3 + "\t" + activity4);
-      }
-      System.out.println();
-
-      rs = print.executeQuery("SELECT * FROM tblLocation");
-      System.out.println("tblLocation");
-      System.out.println("ID\tPrintName\tCapacity");
-      while(rs.next())
-      {
-          int id = rs.getInt("ID");
-          int capacity = rs.getInt("Capacity");
-          String name = rs.getString("PrintName");
-          System.out.println(id + "\t" + name + "\t" + capacity);
-      }
-    }
+          //get the table name
+          String tableName = dbtables.getString(3);
+          //print the contents of the table
+          genericQueryDB("SELECT * FROM " + tableName);
+      }//while
+    }//try
     catch(Exception e)
     {
         System.err.println(e);
