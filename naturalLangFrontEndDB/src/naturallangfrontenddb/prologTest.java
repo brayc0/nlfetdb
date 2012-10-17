@@ -1,23 +1,14 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package naturallangfrontenddb;
 
 import jpl.*;
 
-
-
-/**
- *
- * @author brayc0
- */
 public class prologTest
 {
-  public void test()
+  public static void test()
   {
-    Query q1 = new Query("consult", new Term[] {new Atom("test.pl")}
-    );
+    //Opens the database file
+    Query q1 = new Query("consult", new Term[] {new Atom("sentence.pl")});
+    //tells us whether it was successful or not
+    System.out.println( "consult " + (q1.query() ? "succeeded" : "failed"));
   }
 }

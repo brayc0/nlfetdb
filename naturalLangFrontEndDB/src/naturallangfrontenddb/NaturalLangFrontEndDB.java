@@ -14,6 +14,7 @@ public class NaturalLangFrontEndDB {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        prologTest.test();
         connectUI ui = new connectUI();
         ui.setLocationRelativeTo(null);
         ui.setSize(400, 300);
