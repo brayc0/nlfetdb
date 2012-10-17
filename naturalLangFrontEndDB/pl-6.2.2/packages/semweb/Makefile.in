@@ -1,0 +1,118 @@
+################################################################
+# Makefile template for SWI-Prolog RDF-DB package
+#
+# This template is used by configure to create Makefile.  See
+# the file INSTALL for further installation instructions.
+#
+# License: LGPL
+#
+# Special targets:
+#
+#	ln-install		Install with symbolic links
+#
+# Author: Jan Wielemaker (J.Wielemaker@cs.vu.nl)
+################################################################
+
+PACKAGE=semweb
+DOC=semweb
+include ../Makefile.defs
+include common.mk
+CFLAGS+= -I.
+LIBDIR=$(PLBASE)/library/semweb
+
+TARGETS=	rdf_db.@SO@ turtle.@SO@
+
+RDFDBOBJ=	rdf_db.o atom.o lock.o md5.o avl.o atom_map.o debug.o \
+		hash.o murmur.o
+
+all:		$(TARGETS)
+
+rdf_db.@SO@:	$(RDFDBOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(RDFDBOBJ) $(LIBS) $(LIBPLSO)
+turtle.@SO@:	turtle.o
+		$(LD) $(LDSOFLAGS) -o $@ turtle.o $(LIBS) $(LIBPLSO)
+
+turtle.o:	turtle.c turtle_chars.c
+
+install:	$(TARGETS) $(LIBPL)
+		mkdir -p $(DESTDIR)$(LIBDIR)
+		mkdir -p $(DESTDIR)$(SOLIBDIR)
+		for f in $(TARGETS); do \
+		  $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SOLIBDIR); \
+		done
+		for f in $(DATA) $(LIBPL); do \
+		  $(INSTALL_DATA) $$f $(DESTDIR)$(LIBDIR); \
+		done
+		$(INSTALL_DATA) README $(DESTDIR)$(LIBDIR)/README$(TXTEXT)
+		$(MKPKGINDEX)
+		$(MKINDEX)
+
+ln-install::
+		$(MAKE) INSTALL=../ln-install \
+			INSTALL_DATA=../ln-install \
+			INSTALL_PROGRAM=../ln-install \
+			install
+
+rpm-install:	install
+
+html-install::
+		mkdir -p $(DESTDIR)$(PKGDOCDIR)
+		$(INSTALL) -m 644 $(DOC).html $(DESTDIR)$(PKGDOCDIR)
+		$(INSTALL) -m 644 modules.gif $(DESTDIR)$(PKGDOCDIR)
+
+pdf-install::
+		mkdir -p $(DESTDIR)$(PKGDOCDIR)
+		$(INSTALL) -m 644 $(DOC).pdf $(DESTDIR)$(PKGDOCDIR)
+
+uninstall::
+		(cd $(SOLIBDIR) && rm -f $(TARGETS))
+		(cd $(PLBASE)/library && rm -f $(LIBPL))
+		$(MKINDEX)
+
+rdf_db.o:	unicode_map.c
+
+################################################################
+# Documentation
+################################################################
+
+TEXEXTRA=	rdfturtle.tex rdfturtlewrite.tex rdfcompare.tex \
+                rdfportray.tex rdflib.tex sparqlclient.tex
+
+$(TEX):		$(TEXEXTRA)
+
+rdfturtle.tex:  rdf_turtle.pl
+		$(PLTOTEX) --section 'library(semweb/rdf_turtle)'
+rdfturtlewrite.tex:     rdf_turtle_write.pl
+		$(PLTOTEX) --section 'library(semweb/rdf_turtle_write)'
+rdfcompare.tex: rdf_compare.pl
+		$(PLTOTEX) --section 'library(semweb/rdf_compare)'
+rdfportray.tex: rdf_portray.pl
+		$(PLTOTEX) --section 'library(semweb/rdf_portray)'
+sparqlclient.tex:       sparql_client.pl
+		$(PLTOTEX) --section 'library(semweb/sparql_client)'
+
+################################################################
+# Check
+################################################################
+
+check::
+		$(PL) -q -f test_rdf_db.pl -g test_rdf_db,halt -t 'halt(1)'
+		$(PL) -q -f litmap_test.pl -g test,halt -t 'halt(1)'
+		$(PL) -q -f test.pl -g run_tests,halt -t 'halt(1)'
+		$(PL) -q -f test_turtle.pl -g test_turtle,halt -t 'halt(1)'
+
+
+################################################################
+# Clean
+################################################################
+
+clean:		texclean
+		rm -f $(OBJ) *~ *.o *% a.out core config.log
+
+texclean:
+		rm -f $(TEX) $(DOC).aux $(DOC).log $(DOC).out $(DOC).toc \
+		      $(DOC).ilg
+
+distclean:	clean
+		rm -f $(TARGETS) config.cache config.h config.status Makefile
+

@@ -1,0 +1,186 @@
+################################################################
+# Makefile template for SWI-Prolog CLIB package
+#
+# This template is used by configure to create Makefile.  See
+# the file INSTALL for further installation instructions.
+#
+# License: LGPL
+#
+# Author: Jan Wielemaker (wielemak@science.uva.nl)
+################################################################
+
+PACKAGE=clib
+DOC=clib
+PKGCFLAGS=-I$(srcdir) -I$(srcdir)/maildrop/rfc2045 -I$(srcdir)/maildrop/rfc822
+include ../Makefile.defs
+
+NETLIBS=@NETLIBS@
+CRYPTLIBS=@CRYPTLIBS@
+LIBS=@LIBS@
+MIMELIBS=maildrop/rfc2045/librfc2045.a maildrop/rfc822/librfc822.a
+
+LIBPL=		@PLTARGETS@ streaminfo.pl process.pl prolog_server.pl sha.pl \
+		uri.pl udp_broadcast.pl
+TARGETS=	@TARGETS@ readutil.@SO@ streaminfo.@SO@ process.@SO@ \
+		sha4pl.@SO@ uri.@SO@
+
+UNXOBJ=		error.o unix.o
+SOCKOBJ=	error.o socket.o nonblockio.o
+CGIOBJ=		error.o form.o cgi.o
+CRYPTOBJ=	error.o crypt.o md5.o md5passwd.o @CRYPTOBJ@
+MEMOBJ=		error.o memfile.o
+MIMEOBJ=	error.o mime.o
+TIMEOBJ=	error.o time.o
+FILESOBJ=	error.o files.o
+RLIMITOBJ=	error.o rlimit.o
+URIOBJ=		uri.o
+UIDOBJ=		uid.o
+READUTILOBJ=	readutil.o
+PROCESSOBJ=	error.o process.o
+STREAMINFOOBJ=	error.o streaminfo.o
+SHAOBJ=		error.o sha4pl.o sha1/sha1.o sha1/sha2.o \
+		sha1/hmac_sha1.o sha1/hmac_sha256.o
+
+all:		$(TARGETS)
+
+unix.@SO@:	$(UNXOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(UNXOBJ) $(LIBPLSO)
+socket.@SO@:	$(SOCKOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(SOCKOBJ) $(NETLIBS) $(LIBPLSO)
+cgi.@SO@:	$(CGIOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(CGIOBJ) $(LIBPLSO)
+crypt.@SO@:	$(CRYPTOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(CRYPTOBJ) $(CRYPTLIBS) $(LIBPLSO)
+memfile.@SO@:	$(MEMOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(MEMOBJ) $(LIBPLSO) $(LIBS)
+mime.@SO@:	$(MIMEOBJ) $(MIMELIBS)
+		$(LD) $(LDSOFLAGS) -o $@ $(MIMEOBJ) $(LIBPLSO) $(MIMELIBS)
+time.@SO@:	$(TIMEOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(TIMEOBJ) $(LIBPLSO) $(LIBS)
+files.@SO@:	$(FILESOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(FILESOBJ) $(LIBPLSO) $(LIBS)
+rlimit.@SO@:	$(RLIMITOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(RLIMITOBJ) $(LIBPLSO) $(LIBS)
+readutil.@SO@:	$(READUTILOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(READUTILOBJ) $(LIBPLSO)
+process.@SO@:	$(PROCESSOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(PROCESSOBJ) $(LIBPLSO)
+streaminfo.@SO@: $(STREAMINFOOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(STREAMINFOOBJ) $(LIBPLSO)
+sha4pl.@SO@:	$(SHAOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(SHAOBJ) $(LIBPLSO)
+uri.@SO@:	$(URIOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(URIOBJ) $(LIBS) $(LIBPLSO)
+uid.@SO@:	$(UIDOBJ)
+		$(LD) $(LDSOFLAGS) -o $@ $(UIDOBJ) $(LIBPLSO)
+
+socket.o:	socket.c sockcommon.c
+
+sha1/hmac_sha1.o:
+		$(CC) -c $(CFLAGS) -DUSE_SHA1 -o $@ sha1/hmac.c
+sha1/hmac_sha256.o:
+		$(CC) -c $(CFLAGS) -DUSE_SHA256 -o $@ sha1/hmac.c
+
+maildrop/rfc822/librfc822.a:
+		(cd maildrop/rfc822 && $(MAKE))
+maildrop/rfc2045/librfc2045.a:
+		(cd maildrop/rfc2045 && $(MAKE))
+
+
+install:	$(TARGETS)
+		mkdir -p $(DESTDIR)$(SOLIBDIR)
+		for f in $(TARGETS); do \
+		  $(INSTALL_PROGRAM) $$f $(DESTDIR)$(SOLIBDIR); \
+		done
+		mkdir -p $(DESTDIR)$(PLBASE)/library
+		for f in $(LIBPL); do \
+		  $(INSTALL_DATA) $(srcdir)/$$f $(DESTDIR)$(PLBASE)/library; \
+		done
+		$(MKINDEX)
+
+ln-install::
+		@$(MAKE) INSTALL_DATA='../ln-install' INSTALL_PROGRAM='../ln-install' install
+
+rpm-install:	install
+
+html-install::
+		mkdir -p $(DESTDIR)$(PKGDOCDIR)
+		$(INSTALL) -m 644 clib.html $(DESTDIR)$(PKGDOCDIR)
+
+pdf-install::
+		mkdir -p $(DESTDIR)$(PKGDOCDIR)
+		$(INSTALL) -m 644 clib.pdf $(DESTDIR)$(PKGDOCDIR)
+
+uninstall::
+		(cd $(SOLIBDIR) && rm -f $(TARGETS))
+		(cd $(PLBASE)/library && rm -f $(LIBPL))
+		$(MKINDEX)
+
+################################################################
+# Testing
+################################################################
+
+check:		check-socket check-memfile check-unit check-process \
+		check-read check-uri check-cgi
+
+torture:	torture-socket
+
+check-socket::
+		$(PL) -q -f test_socket.pl -F none -g test_socket,halt -t 'halt(1)'
+
+torture-socket::
+		$(PL) -q -f stresssocket.pl -F none -g test,halt -t 'halt(1)'
+
+check-memfile::
+		$(PL) -q -f test_memfile.pl -F none -g test_memfile,halt -t 'halt(1)'
+
+check-unit::
+		$(PL) -q -f test.pl -g run_tests,halt -t 'halt(1)'
+
+check-uri::
+		$(PL) -q -f test_uri.pl -g true -t test_uri
+
+check-cgi::
+		$(PL) -q -f test_cgi.pl -g true -t test_cgi
+
+check-process::
+		$(PL) -q -f test_process.pl -g true -t test_process
+
+check-read::
+		$(PL) -q -f test_readutil.pl -g true -t test_readutil
+
+################################################################
+# Documentation
+################################################################
+
+TEXEXTRA=process.tex uri.tex filesex.tex uid.tex mime.tex udpbroadcast.tex
+$(TEX):		$(TEXEXTRA)
+
+uri.tex:	uri.pl
+		$(PLTOTEX) 'library(uri)'
+process.tex:	process.pl
+		$(PLTOTEX) 'library(process)'
+mime.tex:	mime.pl
+		$(PLTOTEX) 'library(mime)'
+filesex.tex:	filesex.pl
+		$(PLTOTEX) 'library(filesex)'
+uid.tex:	uid.pl
+		$(PLTOTEX) 'library(uid)'
+udpbroadcast.tex:	udp_broadcast.pl
+		$(PLTOTEX) 'library(udp_broadcast)'
+
+################################################################
+# Clean
+################################################################
+
+clean:
+		rm -f $(OBJ) *~ *.o *% a.out core config.log sha1/*.o
+		rm -f $(TEX)
+		-(cd maildrop/rfc822 && $(MAKE) clean)
+		-(cd maildrop/rfc2045 && $(MAKE) clean)
+
+distclean:	clean
+		rm -f $(TARGETS) config.cache config.h config.status Makefile
+		rm -f clib.aux clib.log clib.out clib.toc
+		-(cd maildrop/rfc822 && $(MAKE) distclean)
+		-(cd maildrop/rfc2045 && $(MAKE) distclean)
