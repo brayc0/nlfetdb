@@ -1,0 +1,89 @@
+#!/bin/bash
+#
+# Make the SWI-Prolog source archives by running this script. Before
+# you start:
+#
+#	* Update VERSION
+#	* Run ./newversion, which creates a GIT tag VN.N.N
+#	* Run ./make-src-tape
+#
+# This script requires GNU-tar!
+
+COREMODULES="bench packages/chr packages/clpqr packages/inclpr packages/jpl"
+COREMODULES+=" packages/xpce packages/odbc packages/protobufs"
+COREMODULES+=" packages/sgml packages/clib packages/http packages/plunit"
+COREMODULES+=" packages/pldoc packages/RDF packages/semweb packages/ssl"
+COREMODULES+=" packages/R packages/zlib packages/tipc packages/table"
+COREMODULES+=" packages/nlp packages/cpp packages/PDT packages/utf8proc"
+COREMODULES+=" packages/archive"
+
+if [ -r modules ]; then
+  SUBMODULES="`cat modules`"
+else
+  SUBMODULES="$COREMODULES"
+fi
+
+version=`cat VERSION`
+out=pl-$version.tar
+extra=pl-extra-$version.tar
+doc=pl-doc-$version.tar
+compress=gzip
+me=`basename $PWD`
+
+TAG="V$version"
+
+case "$1" in
+    --tag=*)
+	TAG=`echo $1 | sed 's/--tag=//'`
+	shift
+	;;
+    --*)
+	echo "Usage: make-source-tape [--tag=TAG]"
+	exit 1
+	;;
+    *)
+esac
+
+if ! git diff --quiet; then
+    echo "Fatal: directory is dirty"
+    exit 1
+fi
+
+# core SWI-Prolog snapshot from GIT
+git archive --format=tar --prefix=pl-$version/ "$TAG" > ../$out
+
+#add the submodules
+for sm in `git submodule $SUBMODULES | awk '{printf "%s:%s\n", $1, $2}'`; do
+    sha1=`echo $sm | awk -F: '{print $1}'`
+    path=`echo $sm | awk -F: '{print $2}'`
+    echo -n "adding module $path at $sha1 ... "
+    git --git-dir $path/.git archive --format=tar --prefix=pl-$version/$path/ $sha1 > tmp.tar
+    tar -Af ../$out tmp.tar
+    rm tmp.tar
+    echo ok
+done
+
+# generated documentation files
+echo $version > doc-version
+tar zcf ../$doc.gz ./doc-version `cat gen-files/doc`
+
+cd ..
+ln -s $me pl-$version
+
+# Extras, also starting with pl-<version>
+tar cfh $extra `sed "s@^@pl-$version/@" $me/gen-files/config`
+tar cfh $doc `sed "s@^@pl-$version/@" $me/gen-files/doc`
+
+# Append them (needs GNU-tar)
+tar -Af $out $extra
+tar -Af $out $doc
+
+# cleanup
+rm $extra
+rm $doc
+rm pl-$version
+
+# compress the result
+rm -f $out.gz
+$compress $out
+

@@ -1,0 +1,63 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(install-sh)
+AC_PREREQ([2.50])
+AC_CONFIG_HEADER(config.h)
+
+AC_SUBST(ARCHIVE_TARGETS)
+AC_SUBST(ARCHIVE_PLTARGETS)
+
+m4_include([../ac_swi_c.m4])
+
+AC_CHECK_HEADER(archive.h,
+		[ AC_DEFINE([HAVE_ARCHIVE_H], 1,
+			    [Define to 1 if you have <archive.h>.])
+		  ARCHIVEH=yes
+		],
+		ARCHIVEH=no)
+
+if test "$ARCHIVEH" = yes; then
+  AC_CHECK_LIB(archive, archive_read_new,
+	       LIBS="$LIBS -larchive"
+	       ARCHIVELIB=yes,
+	       ARCHIVELIB=no)
+fi
+
+AC_CHECK_FUNCS(archive_read_support_compression_bzip2 \
+	       archive_read_support_compression_compress \
+	       archive_read_support_compression_gzip \
+	       archive_read_support_compression_lzma \
+	       archive_read_support_compression_none \
+	       archive_read_support_compression_xz)
+
+AC_CHECK_FUNCS(archive_read_support_format_ar \
+	       archive_read_support_format_cpio \
+	       archive_read_support_format_empty \
+	       archive_read_support_format_iso9660 \
+	       archive_read_support_format_mtree \
+	       archive_read_support_format_raw \
+	       archive_read_support_format_tar \
+	       archive_read_support_format_zip)
+
+if test "$ARCHIVELIB" = yes; then
+  ARCHIVE_TARGETS="archive4pl.$SO"
+  ARCHIVE_PLTARGETS=archive.pl
+else
+  ARCHIVE_TARGETS=nolib
+  cat << EOF
+##################################################################
+# ERROR: Could not find library archive (-larchive).  Dropped
+# library(archive). Library archive is available from
+# http://code.google.com/p/libarchive/
+#
+# Most Unix/Linux distributions are shipped with binaries.  Make
+# sure to have the development library installed.  E.g.
+#
+#   Debian/Ubuntu/Mint:	aptitude install libarchive-dev
+#   Fedora/...		yum install libarchive-devel
+#   MacOS (Macports):   port install libarchive
+##################################################################
+EOF
+fi
+
+AC_OUTPUT(Makefile)

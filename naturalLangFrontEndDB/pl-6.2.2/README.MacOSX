@@ -1,0 +1,22 @@
+SWI-Prolog on MacOS X
+---------------------
+
+SWI-Prolog is provided as a Macports  (www.macports.org/) project. It is
+adviced to install Macports, after  which   you  can  install the latest
+submitted port using
+
+	% sudo port selfupdate
+	% sudo port install swi-prolog
+
+This installs the binary as /opt/local/bin/swipl   and the actual system
+in /opt/local/lib/swipl-<version>
+
+Even if you wish to install from the  source the above is recommended as
+it installs all requirements on your system. Next fetch the source, copy
+build.templ  to  build  and  edit  according  to  the  instructions.
+
+Lion
+----
+
+Lion's Xcode binds gcc to  llvm-gcc.   SWI-Prolog  does not compile with
+this version at this moment. Make sure to edit CC=gcc-4.2 in build.
